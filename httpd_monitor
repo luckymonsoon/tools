@@ -1,0 +1,22 @@
+#!/usr/bin/python
+import subprocess
+import datetime
+
+now = datetime.datetime.now()
+n = now.strftime("%Y-%m-%d %H:%M:%S")
+
+status = subprocess.Popen(['/sbin/service', 'httpd', 'status'], stdout=subprocess.PIPE)
+start = subprocess.Popen(['/sbin/service', 'httpd', 'start'], stdout=subprocess.PIPE)
+out_file = open('/root/logs/httpd_watchdog.log','a')
+ret = status.communicate()[0]
+
+def watchdog():
+  if 'running' in ret:
+      out_file.write(str(n)+' | Server UP.\n')
+  elif 'stopped' in ret:
+      out_file.write(str(n)+' | Server was DOWN - Restart initiated.\n')
+      print 'restarting httpd'
+      return start
+
+watchdog()
+out_file.close()
